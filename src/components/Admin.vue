@@ -1,0 +1,158 @@
+<template>
+  <v-container>
+    <v-row>
+      <v-col cols="6">
+        <MightyComboBox label="Level" v-model="level" :parent="1" @message="showMessage($event)" availableKey="lvl" />
+        <MightyComboBox label="Sublevel" v-model="sublevel" :disabled="!level" :parentObj="level" @message="showMessage($event)" @child="rebuildTable = !rebuildTable" />
+      </v-col>
+      <v-col cols="6">
+        <MightyComboBox label="Category" v-model="category" :parent="2" @message="showMessage($event)" availableKey="cat" />
+        <MightyComboBox label="Subcategory" v-model="subcategory" :disabled="!category" :parentObj="category" @message="showMessage($event)" @child="rebuildTable = !rebuildTable" />
+      </v-col>
+    </v-row>
+    <v-row>
+      <v-col cols="12">
+        <CatLvlTable :category.sync="available['cat']" :level.sync="available['lvl']" :rebuild="rebuildTable"  :loading="pointsLoading" label="Target points per block">
+          <template v-slot:cell="{ cell }">
+            <span v-if="cell.text == undefined">
+              <v-text-field hint="Target points" v-model="points[cell.key]" @keydown.enter="savePoints(cell.key)"/>
+            </span>
+            <span v-else>
+              {{cell.text}}
+            </span>
+          </template>
+        </CatLvlTable>
+    </v-col>
+    </v-row>
+    <v-row>
+      <v-col cols="12">
+        <MightyComboBox label="Course" v-model="course" :parent="3" @message="showMessage($event)" />
+        <v-card v-if="course" :loading="courseLoading">
+          <v-card-title>
+            <v-icon large left>mdi-teach </v-icon> {{ '&nbsp;&nbsp;' + course.text }}
+            <v-spacer />
+            <v-text-field placeholder="Points" hint="Points" v-model="course.points"  @keydown.enter="saveCourseVal('points')" :disabled="courseLoading" />
+            <v-spacer />
+            <v-text-field placeholder="Comment" hint="Comment" v-model="course.comment"  @keydown.enter="saveCourseVal('comment')" :disabled="courseLoading" />
+            <v-spacer />
+          </v-card-title>
+          <div style="position: relative; padding: 12px;">
+          <CatLvlTable :category.sync="available['cat']" :level.sync="available['lvl']" :rebuild="rebuildTable" label="Block assignment">
+            <template v-slot:cell="{ cell }">
+              <span v-if="cell.text == undefined">
+                <v-checkbox :disabled="courseLoading" hint="Assignment to this Level/Category" v-model="course[cell.key]" @change="saveCourseVal(cell.key)"/>
+              </span>
+              <span v-else>
+                {{cell.text}}
+              </span>
+            </template>
+          </CatLvlTable>
+        </div>
+        </v-card>
+      </v-col>
+    </v-row>
+  </v-container>
+</template>
+
+<style>
+</style>
+
+<script>
+import { mapState } from 'vuex';
+import MightyComboBox from './MightyComboBox';
+import CatLvlTable from './CatLvlTable';
+export default {
+  name: 'Admin',
+  components: {
+    MightyComboBox, CatLvlTable,
+  },
+  props: {
+    debug: Boolean,
+  },
+  data: () => ({
+    level: "",
+    sublevel: "",
+    category: "",
+    subcategory: "",
+    rebuildTable: false,
+    pointsLoading: false,
+    points: {},
+    courseLoading: false,
+    course: "",
+    assign: {},
+  }),
+  computed: {
+    ...mapState(['available']),
+  },
+  methods: {
+    loadPoints() {
+      this.pointsLoading = true;
+      this.$backend.loadValues(0)
+        .then(response => {
+          if (response.data.error) {
+            return this.$emit('message', {message: response.data.message});
+          }
+          for (var key in response.data.values)
+            this.$set(this.points, key, response.data.values[key]);
+        })
+        .catch(reason => {
+          return this.$emit('message', {message: reason});
+        })
+        .finally(() => {
+          this.pointsLoading = false;
+        });
+    },
+    savePoints(key) {
+      this.$backend.saveValue(0, key, this.points[key])
+        .then(response => {
+          this.$emit('message', {message: response.data.message, color: response.data.error ? 'error' : 'success'});
+        }).catch(reason => {
+          this.$emit('message', {message: reason});
+        });
+    },
+    saveCourseVal(key) {
+      this.$backend.saveValue(this.course.value, key, this.course[key])
+        .then(response => {
+          this.$emit('message', {message: response.data.message, color: response.data.error ? 'error' : 'success'});
+        }).catch(reason => {
+          this.$emit('message', {message: reason});
+        });
+    },
+    loadCourse() {
+      this.courseLoading = true;
+      this.$backend.loadValues(this.course.value)
+        .then(response => {
+          if (response.data.error) {
+            return this.$emit('message', {message: response.data.message});
+          }
+          for (var key in response.data.values) {
+            this.$set(this.course, key, response.data.values[key]);
+          }
+        })
+        .catch(reason => {
+          return this.$emit('message', {message: reason});
+        })
+        .finally(() => {
+          this.courseLoading = false;
+        });
+    },
+    showMessage(event) {
+      this.$emit('message', event);
+    },
+  },
+  watch: {
+    rebuildTable() {
+      this.loadPoints();
+    },
+    course() {
+      if (!this.course.value) {
+        return;
+      }
+      this.loadCourse();
+    },
+  },
+  mounted() {
+    this.loadPoints();
+  },
+};
+</script>
