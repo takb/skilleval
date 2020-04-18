@@ -3,26 +3,41 @@
     <v-row>
       <v-col cols="6">
         <MightyComboBox label="Level" v-model="level" :parent="1" @message="showMessage($event)" availableKey="lvl" />
-        <MightyComboBox label="Sublevel" v-model="sublevel" :disabled="!level" :parentObj="level" @message="showMessage($event)" @child="rebuildTable = !rebuildTable" />
       </v-col>
       <v-col cols="6">
         <MightyComboBox label="Category" v-model="category" :parent="2" @message="showMessage($event)" availableKey="cat" />
+      </v-col>
+    </v-row>
+    <v-row>
+      <v-col cols="6">
+        <MightyComboBox label="Sublevel" v-model="sublevel" :disabled="!level" :parentObj="level" @message="showMessage($event)" @child="rebuildTable = !rebuildTable" />
+      </v-col>
+      <v-col cols="6">
         <MightyComboBox label="Subcategory" v-model="subcategory" :disabled="!category" :parentObj="category" @message="showMessage($event)" @child="rebuildTable = !rebuildTable" />
       </v-col>
     </v-row>
     <v-row>
       <v-col cols="12">
-        <CatLvlTable :category.sync="available['cat']" :level.sync="available['lvl']" :rebuild="rebuildTable"  :loading="pointsLoading" label="Target points per block">
-          <template v-slot:cell="{ cell }">
-            <span v-if="cell.text == undefined">
-              <v-text-field hint="Target points" v-model="points[cell.key]" @keydown.enter="savePoints(cell.key)"/>
-            </span>
-            <span v-else>
-              {{cell.text}}
-            </span>
-          </template>
-        </CatLvlTable>
-    </v-col>
+        <v-expansion-panels>
+          <v-expansion-panel>
+            <v-expansion-panel-header>
+              Target points per block
+            </v-expansion-panel-header>
+            <v-expansion-panel-content>
+              <CatLvlTable :category.sync="available['cat']" :level.sync="available['lvl']" :rebuild="rebuildTable"  :loading="pointsLoading">
+                <template v-slot:cell="{ cell }">
+                  <span v-if="cell.text == undefined">
+                    <v-text-field hint="Target points" v-model="points[cell.key]" @keydown.enter="savePoints(cell.key)"/>
+                  </span>
+                  <span v-else>
+                    {{cell.text}}
+                  </span>
+                </template>
+              </CatLvlTable>
+            </v-expansion-panel-content>
+          </v-expansion-panel>
+        </v-expansion-panels>
+      </v-col>
     </v-row>
     <v-row>
       <v-col cols="12">
@@ -55,6 +70,11 @@
 </template>
 
 <style>
+  .v-messages, .v-text-field__details {
+    min-height: 0 !important;
+    margin-bottom: 0 !important;
+  }
+
 </style>
 
 <script>

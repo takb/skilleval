@@ -11,7 +11,7 @@
                 <v-icon large>mdi-help-circle-outline</v-icon>
               </v-btn>
               <v-btn icon v-if="writePermission" @click="editMode = !editMode;">
-                <v-icon large>mdi-pencil-outline</v-icon>
+                <v-icon large>mdi-cog-outline</v-icon>
               </v-btn>
             </v-toolbar>
             <Admin v-if="editMode && writePermission"  @message="showMessage($event)"/>

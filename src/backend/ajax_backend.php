@@ -23,41 +23,6 @@ if (isValidAccess($ret) && hasReadPermission($permission, $ret)) {
     case "status":
       break;
 
-    case "prefetch":
-      $ret['items'] = array();
-      $rowkeys = array();
-      $colkeys = array();
-      $result = $db->query("SELECT * FROM `$TABLE_KEYTREE` WHERE `parent` = '1' ORDER BY `id`");
-      if ($result->num_rows) {
-        while ($row = $result->fetch_array()) {
-          $children = array();
-          $result2 = $db->query("SELECT * FROM `$TABLE_KEYTREE` WHERE `parent` = '{$row['id']}' ORDER BY `id`");
-          if ($result2->num_rows) {
-            while ($childrow = $result2->fetch_array()) {
-              array_push($rowkeys, $row['id'].'.'.$childrow['id']);
-            }
-          }
-        }
-      }
-      $result = $db->query("SELECT * FROM `$TABLE_KEYTREE` WHERE `parent` = '2' ORDER BY `id`");
-      if ($result->num_rows) {
-        while ($row = $result->fetch_array()) {
-          $children = array();
-          $result2 = $db->query("SELECT * FROM `$TABLE_KEYTREE` WHERE `parent` = '{$row['id']}' ORDER BY `id`");
-          if ($result2->num_rows) {
-            while ($childrow = $result2->fetch_array()) {
-              array_push($colkeys, $row['id'].'.'.$childrow['id']);
-            }
-          }
-        }
-      }
-      foreach ($rowkeys as $rkey) {
-        foreach ($colkeys as $ckey) {
-          $ret['items'][$rkey.'.'.$ckey] = array();
-        }
-      }
-      break;
-
     case "load":
       $result = $db->query("SELECT * FROM `$TABLE_KEYTREE` WHERE `parent` = '$parent' ORDER BY `id`");
       $ret['items'] = array();
@@ -154,6 +119,49 @@ if (isValidAccess($ret) && hasReadPermission($permission, $ret)) {
       }
       success($ret, VAL_CONFIG_SAVED);
       break;
+
+      case "prefetch":
+        $ret['items'] = array();
+        $rowkeys = array();
+        $colkeys = array();
+        $result = $db->query("SELECT * FROM `$TABLE_KEYTREE` WHERE `parent` = '1' ORDER BY `id`");
+        if ($result->num_rows) {
+          while ($row = $result->fetch_array()) {
+            $children = array();
+            $result2 = $db->query("SELECT * FROM `$TABLE_KEYTREE` WHERE `parent` = '{$row['id']}' ORDER BY `id`");
+            if ($result2->num_rows) {
+              while ($childrow = $result2->fetch_array()) {
+                array_push($rowkeys, $row['id'].'.'.$childrow['id']);
+              }
+            }
+          }
+        }
+        $result = $db->query("SELECT * FROM `$TABLE_KEYTREE` WHERE `parent` = '2' ORDER BY `id`");
+        if ($result->num_rows) {
+          while ($row = $result->fetch_array()) {
+            $children = array();
+            $result2 = $db->query("SELECT * FROM `$TABLE_KEYTREE` WHERE `parent` = '{$row['id']}' ORDER BY `id`");
+            if ($result2->num_rows) {
+              while ($childrow = $result2->fetch_array()) {
+                array_push($colkeys, $row['id'].'.'.$childrow['id']);
+              }
+            }
+          }
+        }
+        foreach ($rowkeys as $rkey) {
+          foreach ($colkeys as $ckey) {
+            $blockkey = $rkey.'.'.$ckey;
+            $ret['items'][$blockkey] = array();
+            $result = $db->query("SELECT `d`.`id`, `c`.`text`, `v`.`value` FROM `$TABLE_DATA` AS `d`
+                                    LEFT JOIN `$TABLE_KEYTREE` AS `c` ON (`d`.`id` = `c`.`id`)
+                                    LEFT JOIN `$TABLE_DATA` AS `v` ON (`d`.`id` = `v`.`id` AND `v`.`key` = 'points')
+                                    WHERE `d`.`key` = '$blockkey' AND `d`.`id` > 0 AND `v`.`value` > 0");
+            while ($row = $result->fetch_assoc()) {
+              array_push($ret['items'][$blockkey], $row);
+            }
+          }
+        }
+        break;
 
 
     // case "com":

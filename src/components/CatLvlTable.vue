@@ -1,49 +1,35 @@
 <template>
-  <div class="dt">
-    <div class="dtlabel" v-if="label">{{ label }}</div>
-    <v-data-table :headers="dtHeader" :items="dtData" :items-per-page="1000" :loading="dtLoading" hide-default-footer hide-default-header>
-      <template v-slot:header="row">
-        <tr v-if="dtData.length">
-          <th v-for="(g, i) in dtHeaderGroups" :colspan="g.value || 1" :key="i" style="text-align: center;">
-            {{ g.text }}
-          </th>
-        </tr>
-        <tr class="v-data-table-header" v-if="dtData.length">
-          <th v-for="(g, i) in row.props.headers" :key="i" style="border-bottom: 1px solid #ddd;">
-            {{ g.text }}
-          </th>
-        </tr>
-      </template>
-      <template v-slot:item="row">
-        <tr>
-          <td v-for="(col, name) in itemFilter(row.item)" :key="row.index + '.' + name">
-            <slot name="cell" :cell="{key: row.item.key+'.'+name, text: name == 'lname' || name == 'slname' ? col : undefined }"></slot>
-          </td>
-        </tr>
-      </template>
-      <template v-slot:no-data>
-        <center style="font-size: 1.3em;">
-          <slot name="no-data">No data available</slot>
-        </center>
-      </template>
-    </v-data-table>
-  </div>
+  <v-data-table class="dt" :headers="dtHeader" :items="dtData" :items-per-page="1000" :loading="dtLoading" hide-default-footer hide-default-header>
+    <template v-slot:header="row">
+      <tr v-if="dtData.length">
+        <th v-for="(g, i) in dtHeaderGroups" :colspan="g.value || 1" :key="i" style="text-align: center;">
+          {{ g.text }}
+        </th>
+      </tr>
+      <tr class="v-data-table-header" v-if="dtData.length">
+        <th v-for="(g, i) in row.props.headers" :key="i" style="border-bottom: 1px solid #ddd;">
+          {{ g.text }}
+        </th>
+      </tr>
+    </template>
+    <template v-slot:item="row">
+      <tr>
+        <td v-for="(col, name) in itemFilter(row.item)" :key="row.index + '.' + name">
+          <slot name="cell" :cell="{key: row.item.key+'.'+name, text: name == 'lname' || name == 'slname' ? col : undefined }"></slot>
+        </td>
+      </tr>
+    </template>
+    <template v-slot:no-data>
+      <center style="font-size: 1.3em;">
+        <slot name="no-data">No data available</slot>
+      </center>
+    </template>
+  </v-data-table>
 </template>
 
 <style scoped>
 .dt {
-  padding: 3px;
-  border-radius: 5px;
-  border: 1px solid #aaa;
-  position: relative;
-}
-.dtlabel {
-  position: absolute;
-  top: -18px;
-  left: 8px;
-  padding: 4px 6px;
-  color: #aaa;
-  background: #fff;
+  white-space: nowrap;
 }
 </style>
 
@@ -52,11 +38,11 @@ import { mapState } from 'vuex';
 export default {
   name: 'CatLvlTable',
   props: {
-    label: String,
     debug: Boolean,
     category: [Array, String],
     level: [Array, String],
     rebuild: Boolean,
+    fold: Boolean,
   },
   data: () => ({
     dtLoading: false,
