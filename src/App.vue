@@ -49,7 +49,7 @@ export default {
     sbText: "",
     sbColor: "error",
     sbTimeout: 6000,
-    editMode: true,
+    editMode: false,
   }),
   computed: {
     ...mapState(['loaded', 'readPermission', 'writePermission', 'available']),

@@ -1,4 +1,5 @@
 <template>
+  <div>
   <v-data-table class="dt" :headers="dtHeader" :items="dtData" :items-per-page="1000" :loading="dtLoading" hide-default-footer hide-default-header>
     <template v-slot:header="row">
       <tr v-if="dtData.length">
@@ -25,6 +26,7 @@
       </center>
     </template>
   </v-data-table>
+</div>
 </template>
 
 <style scoped>

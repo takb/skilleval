@@ -122,6 +122,7 @@ if (isValidAccess($ret) && hasReadPermission($permission, $ret)) {
 
       case "prefetch":
         $ret['items'] = array();
+        $ret['target'] = array();
         $rowkeys = array();
         $colkeys = array();
         $result = $db->query("SELECT * FROM `$TABLE_KEYTREE` WHERE `parent` = '1' ORDER BY `id`");
@@ -133,6 +134,8 @@ if (isValidAccess($ret) && hasReadPermission($permission, $ret)) {
               while ($childrow = $result2->fetch_array()) {
                 array_push($rowkeys, $row['id'].'.'.$childrow['id']);
               }
+            } else {
+              array_push($rowkeys, $row['id'].'.0');
             }
           }
         }
@@ -145,24 +148,35 @@ if (isValidAccess($ret) && hasReadPermission($permission, $ret)) {
               while ($childrow = $result2->fetch_array()) {
                 array_push($colkeys, $row['id'].'.'.$childrow['id']);
               }
+            } else {
+              array_push($colkeys, $row['id'].'.0');
             }
           }
         }
         foreach ($rowkeys as $rkey) {
           foreach ($colkeys as $ckey) {
             $blockkey = $rkey.'.'.$ckey;
+            $result = $db->query("SELECT `value` FROM `$TABLE_DATA` WHERE `key` = '$blockkey' AND `id` = 0");
+            if ($row = $result->fetch_assoc()) {
+              $ret['target'][$blockkey] = $row['value'];
+            } else {
+              continue;
+            }
             $ret['items'][$blockkey] = array();
+            // SELECT `d`.`id`, `c`.`text`, `v`.`value` FROM `skilleval_values` AS `d`
+            //   LEFT JOIN `skilleval_keytree` AS `c` ON (`d`.`id` = `c`.`id`)
+            //   LEFT JOIN `skilleval_values` AS `v` ON (`d`.`id` = `v`.`id` AND `v`.`key` = 'points')
+            //   WHERE `d`.`key` = '4.17.20.24' AND `d`.`value` > 0 AND `d`.`id` > 0 AND `v`.`value` > 0
             $result = $db->query("SELECT `d`.`id`, `c`.`text`, `v`.`value` FROM `$TABLE_DATA` AS `d`
                                     LEFT JOIN `$TABLE_KEYTREE` AS `c` ON (`d`.`id` = `c`.`id`)
                                     LEFT JOIN `$TABLE_DATA` AS `v` ON (`d`.`id` = `v`.`id` AND `v`.`key` = 'points')
-                                    WHERE `d`.`key` = '$blockkey' AND `d`.`id` > 0 AND `v`.`value` > 0");
+                                    WHERE `d`.`key` = '$blockkey' AND `d`.`value` > 0 AND `d`.`id` > 0 AND `v`.`value` > 0");
             while ($row = $result->fetch_assoc()) {
               array_push($ret['items'][$blockkey], $row);
             }
           }
         }
         break;
-
 
     // case "com":
     //   if (!hasWritePermission($permission, $ret)) {break;}

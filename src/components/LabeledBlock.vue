@@ -7,10 +7,12 @@
 
 <style scoped>
 .wrap {
-  padding: 3px;
+  padding: 12px 3px 0;
   border-radius: 5px;
   border: 1px solid #aaa;
   position: relative;
+  margin-top: 4px;
+  margin-bottom: 18px;
 }
 .label {
   position: absolute;

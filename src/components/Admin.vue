@@ -52,17 +52,17 @@
             <v-spacer />
           </v-card-title>
           <div style="position: relative; padding: 12px;">
-          <CatLvlTable :category.sync="available['cat']" :level.sync="available['lvl']" :rebuild="rebuildTable" label="Block assignment">
-            <template v-slot:cell="{ cell }">
-              <span v-if="cell.text == undefined">
-                <v-checkbox :disabled="courseLoading" hint="Assignment to this Level/Category" v-model="course[cell.key]" @change="saveCourseVal(cell.key)"/>
-              </span>
-              <span v-else>
-                {{cell.text}}
-              </span>
-            </template>
-          </CatLvlTable>
-        </div>
+            <CatLvlTable :category.sync="available['cat']" :level.sync="available['lvl']" :rebuild="rebuildTable" label="Block assignment">
+              <template v-slot:cell="{ cell }">
+                <span v-if="cell.text == undefined">
+                  <v-checkbox :disabled="courseLoading" hint="Assignment to this Level/Category" v-model="course[cell.key]" @change="saveCourseVal(cell.key)"/>
+                </span>
+                <span v-else>
+                  {{cell.text}}
+                </span>
+              </template>
+            </CatLvlTable>
+          </div>
         </v-card>
       </v-col>
     </v-row>
