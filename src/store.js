@@ -26,6 +26,21 @@ export default new Vuex.Store({
         Vue.set(state.available, val.key, val.value);
       }
     },
+    delAvailable(state, val) {
+      if (state.available[val.key]) {
+        state.available[val.key] = state.available[val.key].filter(e => e.value !== val.value.value);
+      }
+    },
+    updateAvailable(state, val) {
+      if (state.available[val.key]) {
+        state.available[val.key] = state.available[val.key].filter(e => {
+          if (e.value == val.value.value) {
+            e.text = val.value.text;
+          }
+          return true;
+        });
+      }
+    },
     resetAvailable(state, val) {
       if (state.available[val.key]) {
         state.available[val.key].splice(0);

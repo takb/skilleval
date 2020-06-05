@@ -87,6 +87,9 @@ export default {
               });
               this.$emit('child', '');
             }
+            if ($this.availableKey) {
+              $this.$store.commit('updateAvailable', {key: $this.availableKey, value: item});
+            }
             $this.loadItems();
           }).catch(reason => {
             return $this.$emit('message', {message: reason});
@@ -104,6 +107,11 @@ export default {
             }
             e = response.data.item;
             $this.items.push(e);
+            if ($this.availableKey) {
+              $this.$store.commit('setAvailable', {key: $this.availableKey, value: [e]});
+            }
+            // eslint-disable-next-line no-console
+            // console.log($this.$store.state.available[$this.availableKey]);
             if (typeof this.parentObj == 'object') {
               this.parentObj.children.push(e);
               this.$emit('child', '');
@@ -131,6 +139,9 @@ export default {
           if (typeof this.parentObj == 'object') {
             this.parentObj.children = this.parentObj.children.filter(e => {return e.value != item.value;});
             this.$emit('child', '');
+          }
+          if ($this.availableKey) {
+            $this.$store.commit('delAvailable', {key: $this.availableKey, value: item});
           }
           $this.loadItems();
         }).catch(reason => {

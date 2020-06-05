@@ -18,6 +18,7 @@
     </v-row>
     <v-row>
       <v-col cols="12">
+        {{available['cat']}}
         <v-expansion-panels>
           <v-expansion-panel>
             <v-expansion-panel-header>
