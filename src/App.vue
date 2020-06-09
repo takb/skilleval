@@ -1,11 +1,20 @@
 <template>
   <v-app>
-    <v-container>
+    <v-container v-if="viewmode">
+      <v-row>
+        <v-col cols="12">
+          <v-sheet>
+            <Viewer @message="showMessage($event)" :viewmode="viewmode" :noDataLabel="noDataLabel" :levelLabel="levelLabel" :sublevelLabel="sublevelLabel" :matrixLabel="matrixLabel" :progressLabel="progressLabel" :noLevelLabel="noLevelLabel" />
+          </v-sheet>
+        </v-col>
+      </v-row>
+    </v-container>
+    <v-container v-else>
       <v-row>
         <v-col cols="12">
           <v-sheet>
             <v-toolbar class="teal">
-              <v-toolbar-title>SkillEval</v-toolbar-title>
+              <v-toolbar-title>hei4SKILL matrix app</v-toolbar-title>
               <v-spacer/>
               <!-- <v-btn icon>
                 <v-icon large>mdi-help-circle-outline</v-icon>
@@ -20,7 +29,7 @@
         </v-col>
       </v-row>
     </v-container>
-    <v-snackbar vertical  bottom :color="sbColor" v-model="sb">
+    <v-snackbar vertical bottom :color="sbColor" v-model="sb">
       {{ sbText }} <v-btn dark text @click="sb = false">Close</v-btn>
     </v-snackbar>
   </v-app>
@@ -43,6 +52,15 @@ export default {
   name: 'App',
   components: {
     Admin, Viewer
+  },
+  props: {
+    viewmode: String,
+    noDataLabel: String,
+    levelLabel: String,
+    sublevelLabel: String,
+    matrixLabel: String,
+    progressLabel: String,
+    noLevelLabel: String,
   },
   data: () => ({
     sb: false,
@@ -70,6 +88,9 @@ export default {
   },
   created: function() {
     this.checkStatus();
-  }
+    // eslint-disable-next-line no-console
+    console.log(this.sublevelLabel);
+
+  },
 };
 </script>

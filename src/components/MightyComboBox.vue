@@ -49,6 +49,7 @@ export default {
     readonly: Boolean,
     loading: Boolean,
     autoselect: Boolean,
+    autoselectById: String,
   },
   data: () => ({
     items: [],
@@ -164,6 +165,16 @@ export default {
             $this.items.push.apply($this.items, response.data.items);
             if (this.autoselect) {
               this.$emit('input', $this.items);
+            }
+            if (this.autoselectById) {
+              var input = [];
+              var ids = this.autoselectById.split(',');
+              this.items.forEach(e => {
+                if (ids.includes(e.value.toString())) {
+                  input.push(e);
+                }
+              });
+              this.$emit('input', input);
             }
           })
           .catch(reason => {

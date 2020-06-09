@@ -22,7 +22,7 @@
     </template>
     <template v-slot:no-data>
       <center style="font-size: 1.3em;">
-        <slot name="no-data">No data available</slot>
+        <slot name="no-data">{{noDataLabel}}</slot>
       </center>
     </template>
   </v-data-table>
@@ -45,6 +45,18 @@ export default {
     level: [Array, String],
     rebuild: Boolean,
     fold: Boolean,
+    noDataLabel: {
+      type: String,
+      default: 'No data available'
+    },
+    levelLabel: {
+      type: String,
+      default: 'Level'
+    },
+    sublevelLabel: {
+      type: String,
+      default: 'Sublevel'
+    },
   },
   data: () => ({
     dtLoading: false,
@@ -58,15 +70,21 @@ export default {
   methods: {
     buildTable(){
       this.dtData.splice(0);
-      // eslint-disable-next-line no-console
-      // console.log(this.category, typeof this.category);
       if (!Array.isArray(this.category) || !Array.isArray(this.level) || !this.category.length || !this.level.length) {
         return;
       }
       this.dtLoading = true;
       // headers
-      this.dtHeaderGroups = [{text: ''}, {text: ''}];
-      this.dtHeader = [{text: 'Level', value: 'lname'}, {text: 'Condition', value: 'slname'}];
+      // eslint-disable-next-line no-console
+      this.dtHeaderGroups = [];
+      this.dtHeader = [];
+      if (this.level.length > 1) {
+        this.dtHeaderGroups.push({text: ''});
+        this.dtHeader.push({text: this.levelLabel, value: 'lname'});
+      }
+      this.dtHeaderGroups.push({text: ''});
+      this.dtHeader.push({text: this.sublevelLabel, value: 'slname'});
+
       this.category.forEach(c => {
         this.dtHeaderGroups.push({text: c.text, value: c.children.length})
         if (c.children.length) {
@@ -81,7 +99,10 @@ export default {
         if (l.children.length) {
           var firstchild = true;
           l.children.forEach(sl => {
-            var row = {key: l.value+'.'+sl.value, lname: firstchild ? l.text : '', slname: sl.text};
+            var row = {key: l.value+'.'+sl.value, slname: sl.text};
+            if (this.level.length > 1) {
+              row['lname'] = firstchild ? l.text : ''
+            }
             this.category.forEach(c => {
               if (c.children.length > 1) {
                 c.children.forEach(sc => {

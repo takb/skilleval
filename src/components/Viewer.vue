@@ -1,38 +1,42 @@
 <template>
   <v-container >
-    <v-row>
+    <v-row v-show="!viewmode">
       <v-col cols="6">
-        <MightyComboBox label="Level" v-model="level" :parent="1" @message="showMessage($event)" availableKey="lvl" multiple :disabled="loading" />
+        <MightyComboBox label="Level" v-model="level" :parent="1" @message="showMessage($event)" availableKey="lvl" multiple :disabled="loading" :autoselectById="viewmode" />
       </v-col>
       <v-col cols="6">
         <MightyComboBox label="Category" v-model="category" :parent="2" @message="showMessage($event)" availableKey="cat" multiple :disabled="loading" autoselect/>
       </v-col>
     </v-row>
-    <LabeledBlock label="Courses">
-      <CatLvlTable :category.sync="category" :level.sync="level">
+    <LabeledBlock :label="matrixLabel">
+      <CatLvlTable :category.sync="category" :level.sync="level" :noDataLabel="noDataLabel" :levelLabel="levelLabel" :sublevelLabel="sublevelLabel">
         <template v-slot:cell="{ cell }">
           <div v-if="cell.text == undefined && Array.isArray(items[cell.key])" style="vertical-align: top;">
             <v-tooltip top v-for="course in items[cell.key]" :key="course.id">
               <template v-slot:activator="{ on }">
-                <v-checkbox v-on="on" v-model="course.selected"  :value="course.value" hide-details :click="fillChartData()">
-                  <span slot="label" v-on="on">{{course.text}}</span>
+                <v-checkbox v-on="on" v-model="course.selected" :value="course.value" hide-details :click="fillChartData()">
+                  <span slot="label" v-on="on">
+                    {{course.text}}
+                  </span>
+                  <span slot="prepend">
+                    <a :href="course.url" v-if="course.url" target="_blank"><v-icon>mdi-file-move-outline</v-icon></a>
+                  </span>
                 </v-checkbox>
               </template>
               <span>{{'Points: ' + course.value + ' (' + target[cell.key] + ' required)'}}</span>
             </v-tooltip>
-            <!-- {{ progress(cell.key) + " - " + cell.key }} -->
           </div>
           <span v-else>
             {{cell.text}}
           </span>
         </template>
         <template v-slot:no-data>
-          select at least one level and one category
+          {{noLevelLabel}}
         </template>
       </CatLvlTable>
     </LabeledBlock>
-    <LabeledBlock label="Progress" v-if="category.length && level.length">
-      <CustomChart :chart-data="chartData" :height="80"></CustomChart>
+    <LabeledBlock :label="progressLabel" v-if="category.length && level.length">
+      <CustomChart :chart-data="chartData" :height="80" style="margin: 10px;"></CustomChart>
     </LabeledBlock>
     <!-- DEBUG MODE OUTPUT<br /><br />
     {{ items }} <br /><br />
@@ -52,6 +56,22 @@ export default {
   },
   props: {
     debug: Boolean,
+    viewmode: String,
+    noDataLabel: String,
+    levelLabel: String,
+    sublevelLabel: String,
+    matrixLabel: {
+      type: String,
+      default: 'Courses'
+    },
+    progressLabel: {
+      type: String,
+      default: 'Progress'
+    },
+    noLevelLabel: {
+      type: String,
+      default: 'select at least one level and one category'
+    },
   },
   data: () => ({
     level: [],
@@ -91,8 +111,6 @@ export default {
           }
           this.items = response.data.items;
           this.target = response.data.target;
-          // eslint-disable-next-line no-console
-          // console.log(this.items);
         })
         .catch(reason => {
           return this.$emit('message', {message: reason});

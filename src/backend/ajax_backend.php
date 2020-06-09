@@ -166,11 +166,14 @@ if (isValidAccess($ret) && hasReadPermission($permission, $ret)) {
             // SELECT `d`.`id`, `c`.`text`, `v`.`value` FROM `skilleval_values` AS `d`
             //   LEFT JOIN `skilleval_keytree` AS `c` ON (`d`.`id` = `c`.`id`)
             //   LEFT JOIN `skilleval_values` AS `v` ON (`d`.`id` = `v`.`id` AND `v`.`key` = 'points')
-            //   WHERE `d`.`key` = '4.17.20.24' AND `d`.`value` > 0 AND `d`.`id` > 0 AND `v`.`value` > 0
-            $result = $db->query("SELECT `d`.`id`, `c`.`text`, `v`.`value` FROM `$TABLE_DATA` AS `d`
+            //   WHERE `d`.`key` = '4.17.20.24' AND `d`.`value` > 0 AND `d`.`id` > 0 AND `v`.`value` > 0//, `comment`.`value` AS co``, `url`.`value`
+            $result = $db->query("SELECT `d`.`id`, `c`.`text`, `points`.`value` AS `value`, `comment`.`value` AS `comment`, `url`.`value` AS `url`
+                                    FROM `$TABLE_DATA` AS `d`
                                     LEFT JOIN `$TABLE_KEYTREE` AS `c` ON (`d`.`id` = `c`.`id`)
-                                    LEFT JOIN `$TABLE_DATA` AS `v` ON (`d`.`id` = `v`.`id` AND `v`.`key` = 'points')
-                                    WHERE `d`.`key` = '$blockkey' AND `d`.`value` > 0 AND `d`.`id` > 0 AND `v`.`value` > 0");
+                                    LEFT JOIN `$TABLE_DATA` AS `points` ON (`d`.`id` = `points`.`id` AND `points`.`key` = 'points')
+                                    LEFT JOIN `$TABLE_DATA` AS `comment` ON (`d`.`id` = `comment`.`id` AND `comment`.`key` = 'comment')
+                                    LEFT JOIN `$TABLE_DATA` AS `url` ON (`d`.`id` = `url`.`id` AND `url`.`key` = 'url')
+                                    WHERE `d`.`key` = '$blockkey' AND `d`.`value` > 0 AND `d`.`id` > 0 AND `points`.`value` > 0");
             while ($row = $result->fetch_assoc()) {
               array_push($ret['items'][$blockkey], $row);
             }

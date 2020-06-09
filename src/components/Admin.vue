@@ -46,10 +46,9 @@
           <v-card-title>
             <v-icon large left>mdi-teach </v-icon> {{ '&nbsp;&nbsp;' + course.text }}
             <v-spacer />
-            <v-text-field placeholder="Points" hint="Points" v-model="course.points"  @keydown.enter="saveCourseVal('points')" :disabled="courseLoading" />
-            <v-spacer />
-            <v-text-field placeholder="Comment" hint="Comment" v-model="course.comment"  @keydown.enter="saveCourseVal('comment')" :disabled="courseLoading" />
-            <v-spacer />
+            <v-text-field class="margin" outlined placeholder="Points" v-model="course.points"  @keydown.enter="saveCourseVal('points')" :disabled="courseLoading" />
+            <v-text-field class="margin" outlined placeholder="Comment" v-model="course.comment"  @keydown.enter="saveCourseVal('comment')" :disabled="courseLoading" />
+            <v-text-field class="margin" outlined placeholder="URL" v-model="course.url"  @keydown.enter="saveCourseVal('url')" :disabled="courseLoading" />
           </v-card-title>
           <div style="position: relative; padding: 12px;">
             <CatLvlTable :category.sync="available['cat']" :level.sync="available['lvl']" :rebuild="rebuildTable" label="Block assignment">
@@ -74,7 +73,10 @@
     min-height: 0 !important;
     margin-bottom: 0 !important;
   }
-
+  .margin {
+    padding-left: 6px !important;
+    padding-right: 6px !important;
+  }
 </style>
 
 <script>
@@ -146,7 +148,7 @@ export default {
             return this.$emit('message', {message: response.data.message});
           }
           for (var key in response.data.values) {
-            this.$set(this.course, key, response.data.values[key]);
+            this.$set(this.course, key, response.data.values[key] || '');
           }
         })
         .catch(reason => {
