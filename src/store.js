@@ -36,6 +36,7 @@ export default new Vuex.Store({
         state.available[val.key] = state.available[val.key].filter(e => {
           if (e.value == val.value.value) {
             e.text = val.value.text;
+            e.children = val.value.children;
           }
           return true;
         });

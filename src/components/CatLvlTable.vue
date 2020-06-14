@@ -1,32 +1,32 @@
 <template>
   <div>
-  <v-data-table class="dt" :headers="dtHeader" :items="dtData" :items-per-page="1000" :loading="dtLoading" hide-default-footer hide-default-header>
-    <template v-slot:header="row">
-      <tr v-if="dtData.length">
-        <th v-for="(g, i) in dtHeaderGroups" :colspan="g.value || 1" :key="i" style="text-align: center;">
-          {{ g.text }}
-        </th>
-      </tr>
-      <tr class="v-data-table-header" v-if="dtData.length">
-        <th v-for="(g, i) in row.props.headers" :key="i" style="border-bottom: 1px solid #ddd;">
-          {{ g.text }}
-        </th>
-      </tr>
-    </template>
-    <template v-slot:item="row">
-      <tr>
-        <td v-for="(col, name) in itemFilter(row.item)" :key="row.index + '.' + name">
-          <slot name="cell" :cell="{key: row.item.key+'.'+name, text: name == 'lname' || name == 'slname' ? col : undefined }"></slot>
-        </td>
-      </tr>
-    </template>
-    <template v-slot:no-data>
-      <center style="font-size: 1.3em;">
-        <slot name="no-data">{{noDataLabel}}</slot>
-      </center>
-    </template>
-  </v-data-table>
-</div>
+    <v-data-table class="dt" :headers="dtHeader" :items="dtData" :items-per-page="1000" :loading="dtLoading" hide-default-footer hide-default-header>
+      <template v-slot:header="row">
+        <tr v-if="dtData.length">
+          <th v-for="(g, i) in dtHeaderGroups" :colspan="g.value || 1" :key="i" style="text-align: center;">
+            {{ g.text }}
+          </th>
+        </tr>
+        <tr class="v-data-table-header" v-if="dtData.length && showDetailHeader">
+          <th v-for="(g, i) in row.props.headers" :key="i" style="border-bottom: 1px solid #ddd;">
+            {{ g.text }}
+          </th>
+        </tr>
+      </template>
+      <template v-slot:item="row">
+        <tr>
+          <td v-for="(col, name) in itemFilter(row.item)" :key="row.index + '.' + name">
+            <slot name="cell" :cell="{key: row.item.key+'.'+name, text: name == 'lname' || name == 'slname' ? col : undefined }"></slot>
+          </td>
+        </tr>
+      </template>
+      <template v-slot:no-data>
+        <center style="font-size: 1.3em;">
+          <slot name="no-data">{{noDataLabel}}</slot>
+        </center>
+      </template>
+    </v-data-table>
+  </div>
 </template>
 
 <style scoped>
@@ -45,6 +45,10 @@ export default {
     level: [Array, String],
     rebuild: Boolean,
     fold: Boolean,
+    showDetailHeader: {
+      type: Boolean,
+      default: false,
+    },
     noDataLabel: {
       type: String,
       default: 'No data available'
@@ -75,7 +79,6 @@ export default {
       }
       this.dtLoading = true;
       // headers
-      // eslint-disable-next-line no-console
       this.dtHeaderGroups = [];
       this.dtHeader = [];
       if (this.level.length > 1) {
@@ -99,10 +102,11 @@ export default {
         if (l.children.length) {
           var firstchild = true;
           l.children.forEach(sl => {
-            var row = {key: l.value+'.'+sl.value, slname: sl.text};
+            var row = {key: l.value+'.'+sl.value};
             if (this.level.length > 1) {
               row['lname'] = firstchild ? l.text : ''
             }
+            row['slname'] = sl.text;
             this.category.forEach(c => {
               if (c.children.length > 1) {
                 c.children.forEach(sc => {

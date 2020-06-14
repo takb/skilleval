@@ -2,18 +2,18 @@
   <v-container>
     <v-row>
       <v-col cols="6">
-        <MightyComboBox label="Level" v-model="level" :parent="1" @message="showMessage($event)" availableKey="lvl" />
+        <MightyComboBox label="Level" v-model="level" :parent="1" @message="showMessage($event)" availableKey="lvl" :showId="true" @changed="updateTables()" />
       </v-col>
       <v-col cols="6">
-        <MightyComboBox label="Category" v-model="category" :parent="2" @message="showMessage($event)" availableKey="cat" />
+        <MightyComboBox label="Category" v-model="category" :parent="2" @message="showMessage($event)" availableKey="cat" @changed="updateTables()" />
       </v-col>
     </v-row>
     <v-row>
       <v-col cols="6">
-        <MightyComboBox label="Sublevel" v-model="sublevel" :disabled="!level" :parentObj="level" @message="showMessage($event)" @child="rebuildTable = !rebuildTable" />
+        <MightyComboBox label="Sublevel" v-model="sublevel" :disabled="!level" :parentObj="level" parentAvailableKey="lvl" @message="showMessage($event)" @changed="updateTables()" />
       </v-col>
       <v-col cols="6">
-        <MightyComboBox label="Subcategory" v-model="subcategory" :disabled="!category" :parentObj="category" @message="showMessage($event)" @child="rebuildTable = !rebuildTable" />
+        <MightyComboBox label="Subcategory" v-model="subcategory" :disabled="!category" :parentObj="category" parentAvailableKey="cat" @message="showMessage($event)" @changed="updateTables()" />
       </v-col>
     </v-row>
     <v-row>
@@ -27,7 +27,7 @@
               <CatLvlTable :category.sync="available['cat']" :level.sync="available['lvl']" :rebuild="rebuildTable"  :loading="pointsLoading">
                 <template v-slot:cell="{ cell }">
                   <span v-if="cell.text == undefined">
-                    <v-text-field hint="Target points" v-model="points[cell.key]" @keydown.enter="savePoints(cell.key)"/>
+                    <v-text-field hint="Target points" v-model="points[cell.key]" @keydown.enter="savePoints(cell.key)" @blur="savePoints(cell.key)"/>
                   </span>
                   <span v-else>
                     {{cell.text}}
@@ -46,9 +46,9 @@
           <v-card-title>
             <v-icon large left>mdi-teach </v-icon> {{ '&nbsp;&nbsp;' + course.text }}
             <v-spacer />
-            <v-text-field class="margin" outlined placeholder="Points" v-model="course.points"  @keydown.enter="saveCourseVal('points')" :disabled="courseLoading" />
-            <v-text-field class="margin" outlined placeholder="Comment" v-model="course.comment"  @keydown.enter="saveCourseVal('comment')" :disabled="courseLoading" />
-            <v-text-field class="margin" outlined placeholder="URL" v-model="course.url"  @keydown.enter="saveCourseVal('url')" :disabled="courseLoading" />
+            <v-text-field class="margin" outlined placeholder="Points" v-model="course.points" @keydown.enter="saveCourseVal('points')" @blur="saveCourseVal('points')" :disabled="courseLoading" />
+            <v-text-field class="margin" outlined placeholder="Comment" v-model="course.comment" @keydown.enter="saveCourseVal('comment')" @blur="saveCourseVal('comment')" :disabled="courseLoading" />
+            <v-text-field class="margin" outlined placeholder="URL" v-model="course.url" @keydown.enter="saveCourseVal('url')" @blur="saveCourseVal('url')" :disabled="courseLoading" />
           </v-card-title>
           <div style="position: relative; padding: 12px;">
             <CatLvlTable :category.sync="available['cat']" :level.sync="available['lvl']" :rebuild="rebuildTable" label="Block assignment">
@@ -63,6 +63,14 @@
             </CatLvlTable>
           </div>
         </v-card>
+      </v-col>
+    </v-row>
+    <v-row>
+      <v-col cols="12">
+        <ul>
+          <li ><a @click="setViewmode('131,4,5,6,133');">Default user view for students</a></li>
+          <li v-for="level in available['lvl']" :key="level.value"><a @click="setViewmode(level.value);">User view for {{level.text}}</a></li>
+        </ul>
       </v-col>
     </v-row>
   </v-container>
@@ -160,6 +168,14 @@ export default {
     },
     showMessage(event) {
       this.$emit('message', event);
+    },
+    setViewmode(event) {
+      this.$emit('viewmode', event);
+    },
+    updateTables() {
+      // eslint-disable-next-line no-console
+      // console.log(event);
+      this.rebuildTable = !this.rebuildTable;
     },
   },
   watch: {

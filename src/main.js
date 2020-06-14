@@ -7,14 +7,14 @@ Vue.config.productionTip = false;
 backend.store = store;
 Vue.prototype.$backend = backend;
 const props = {};
-const propsNames = ['viewmode', 'noDataLabel', 'levelLabel', 'sublevelLabel', 'matrixLabel', 'progressLabel', 'noLevelLabel' ];
+const propsNames = ['noDataLabel', 'levelLabel', 'sublevelLabel', 'matrixLabel', 'progressLabel', 'noLevelLabel' ];
 if (document.getElementById('app') && document.getElementById('app').attributes) {
   propsNames.forEach(key => {
     props[key] = document.getElementById('app').attributes[key] && document.getElementById('app').attributes[key].value;
   });
 }
 // eslint-disable-next-line no-console
-console.log(props);
+// console.log(props);
 
 new Vue({
   vuetify,

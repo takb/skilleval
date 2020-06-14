@@ -14,7 +14,7 @@
           <div v-if="cell.text == undefined && Array.isArray(items[cell.key])" style="vertical-align: top;">
             <v-tooltip top v-for="course in items[cell.key]" :key="course.id">
               <template v-slot:activator="{ on }">
-                <v-checkbox v-on="on" v-model="course.selected" :value="course.value" hide-details :click="fillChartData()">
+                <v-checkbox v-on="on" v-model="course.selected" :value="course.value" hide-details :click="fillChartData()" style="margin-bottom: 14px;">
                   <span slot="label" v-on="on">
                     {{course.text}}
                   </span>
@@ -23,7 +23,7 @@
                   </span>
                 </v-checkbox>
               </template>
-              <span>{{'Points: ' + course.value + ' (' + target[cell.key] + ' required)'}}</span>
+              <span>{{course.comment ? course.comment + ' - ' : ''}}{{'Points: ' + course.value + ' (' + target[cell.key] + ' required)'}}</span>
             </v-tooltip>
           </div>
           <span v-else>
@@ -36,10 +36,9 @@
       </CatLvlTable>
     </LabeledBlock>
     <LabeledBlock :label="progressLabel" v-if="category.length && level.length">
-      <CustomChart :chart-data="chartData" :height="80" style="margin: 10px;"></CustomChart>
+      <CustomChart :chart-data="chartData" :height="80" :stacked="stackedMode" style="margin: 10px;"></CustomChart>
     </LabeledBlock>
     <!-- DEBUG MODE OUTPUT<br /><br />
-    {{ items }} <br /><br />
     {{ chartData }} <br /><br /> -->
   </v-container>
 </template>
@@ -60,6 +59,10 @@ export default {
     noDataLabel: String,
     levelLabel: String,
     sublevelLabel: String,
+    stackedMode: {
+      type: Boolean,
+      default: true,
+    },
     matrixLabel: {
       type: String,
       default: 'Courses'
@@ -80,7 +83,10 @@ export default {
     items: [],
     target: [],
     chartData: null,
-    // colorNames: ['CornflowerBlue', 'DarkSeaGreen', 'DarkOrange', 'FireBrick', 'DarkViolet', 'Gold', 'DarkOrchid', 'DarkSlateGrey', 'LightBlue', 'LightSeaGreen', 'MediumPurple'],
+    chartData2: null,
+    hoverBackgroundColors:["rgba(255, 99, 132, 0.8)","rgba(255, 205, 86, 0.8)","rgba(75, 192, 192, 0.8)","rgba(54, 162, 235, 0.8)","rgba(153, 102, 255, 0.8)","rgba(201, 203, 207, 0.8)"],
+    backgroundColors:["rgba(255, 99, 132, 0.4)","rgba(255, 205, 86, 0.4)","rgba(75, 192, 192, 0.4)","rgba(54, 162, 235, 0.4)","rgba(153, 102, 255, 0.4)","rgba(201, 203, 207, 0.4)"],
+    borderColors:["rgb(255, 99, 132)","rgb(255, 205, 86)","rgb(75, 192, 192)","rgb(54, 162, 235)","rgb(153, 102, 255)","rgb(201, 203, 207)"],
   }),
   computed: {
   },
@@ -93,14 +99,6 @@ export default {
     //   }
     //   return sum;
     // },
-    progress(block) {
-      var sum = 0;
-      for(var k in this.items[block]) {
-        var currentVal = parseInt(this.items[block][k].selected);
-        sum += currentVal ? currentVal : 0;
-      }
-      return sum >= this.target[block] ? 100 : (sum / this.target[block] * 100).toFixed(2);
-    },
     loadItems() {
       this.loading = true;
       this.items.splice(0);
@@ -121,27 +119,77 @@ export default {
     },
     fillChartData() {
       if (!this.category || !this.level) return;
-      var labels = [];
-      this.level.forEach(l=>{
-        if (l.children.length) {
-          l.children.forEach(sl=>{
-            labels.push(l.text+' - '+sl.text);
+      if (this.stackedMode) {
+        var catLabels = [];
+        var categories = [];
+        this.category.forEach(c=>{
+          if (c.children.length) {
+            c.children.forEach(sc=>{
+              categories.push({label: c.text+' - '+sc.text, key:c.value+'.'+sc.value});
+            });
+          } else {
+            categories.push({label: c.text, key:c.value+'.0'});
+          }
+          catLabels.push(c.text);
+        });
+        var data = [];
+        this.level.forEach((l, i)=>{
+          var levelData = [];
+          categories.forEach(c => {
+            var points = 0;
+            if (l.children.length) {
+              l.children.forEach(sl=>{
+                points += this.progressLevelSum(l.value+'.'+sl.value+'.'+c.key);
+              });
+            } else {
+                points += this.progressLevelSum(l.value+'.0.'+c.key)
+            }
+            levelData.push(points);
           });
-        } else {
-          labels.push(l.text);
-        }
-      });
-      var datasets = [];
-      this.category.forEach(c=>{
-        if (c.children.length) {
-          c.children.forEach(sc=>{
-            datasets.push(this.getDataSet(c.text+' - '+sc.text, c.value+'.'+sc.value));
+          data.push({
+            label: l.text,
+            data: levelData,
+            borderWidth: 2,
+            backgroundColor: this.backgroundColors[i],
+            hoverBackgroundColor: this.hoverBackgroundColors[i],
+            borderColor: this.borderColors[i],
           });
-        } else {
-          datasets.push(this.getDataSet(c.text, c.value+'.0'));
-        }
-      });
-      this.chartData = {labels, datasets}
+        });
+        this.chartData = {
+          labels: catLabels,
+          datasets: data
+        };
+      } else {
+        var labels = [];
+        this.level.forEach(l=>{
+          if (l.children.length) {
+            l.children.forEach(sl=>{
+              labels.push(l.text+' - '+sl.text);
+            });
+          } else {
+            labels.push(l.text);
+          }
+        });
+        var datasets = [];
+        this.category.forEach(c=>{
+          if (c.children.length) {
+            c.children.forEach(sc=>{
+              datasets.push(this.getDataSet(c.text+' - '+sc.text, c.value+'.'+sc.value));
+            });
+          } else {
+            datasets.push(this.getDataSet(c.text, c.value+'.0'));
+          }
+        });
+        this.chartData = {labels, datasets}        
+      }
+    },
+    progressLevelSum(block) {
+      var sum = 0;
+      for(var k in this.items[block]) {
+        var currentVal = parseInt(this.items[block][k].selected);
+        sum += currentVal ? currentVal : 0;
+      }
+      return sum;
     },
     getDataSet(label, key) {
       var data = this.getRowsData(key);
@@ -171,6 +219,14 @@ export default {
         }
       });
       return rows;
+    },
+    progress(block) {
+      var sum = 0;
+      for(var k in this.items[block]) {
+        var currentVal = parseInt(this.items[block][k].selected);
+        sum += currentVal ? currentVal : 0;
+      }
+      return sum >= this.target[block] ? 100 : (sum / this.target[block] * 100).toFixed(2);
     },
     showMessage(event) {
       this.$emit('message', event);

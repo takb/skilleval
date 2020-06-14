@@ -16,7 +16,7 @@
     <template v-slot:item="{ index, item }">
       <v-text-field v-if="editing === item" v-model="editing.text" autofocus flat background-color="transparent" hide-details solo
         @keydown.enter.stop.prevent="editItem(index, item)" />
-      <span v-else> {{ item.text }} </span>
+      <span v-else> {{ item.text }} <span v-if="showId">({{ item.value }})</span></span>
       <v-spacer></v-spacer>
       <v-list-item-action @click.stop v-if="editable">
         <v-btn icon @click.stop.prevent="editItem(index, item)" >
@@ -42,12 +42,14 @@ export default {
     value: [String, Object, Array],
     parent: Number,
     parentObj: [String, Object],
+    parentAvailableKey: String,
     multiple: Boolean,
     disabled: Boolean,
     availableKey: String,
     loadFromKey: Boolean,
     readonly: Boolean,
     loading: Boolean,
+    showId: Boolean,
     autoselect: Boolean,
     autoselectById: String,
   },
@@ -86,11 +88,14 @@ export default {
                 }
                 return true;
               });
-              this.$emit('child', '');
+              if ($this.parentAvailableKey) {
+                $this.$store.commit('updateAvailable', {key: $this.parentAvailableKey, value: $this.parentObj});
+              }
             }
             if ($this.availableKey) {
               $this.$store.commit('updateAvailable', {key: $this.availableKey, value: item});
             }
+            this.$emit('changed', '');
             $this.loadItems();
           }).catch(reason => {
             return $this.$emit('message', {message: reason});
@@ -115,9 +120,12 @@ export default {
             // console.log($this.$store.state.available[$this.availableKey]);
             if (typeof this.parentObj == 'object') {
               this.parentObj.children.push(e);
-              this.$emit('child', '');
+              if ($this.parentAvailableKey) {
+                $this.$store.commit('updateAvailable', {key: $this.parentAvailableKey, value: $this.parentObj});
+              }
             }
             this.$refs["combo"].isFocused = false;
+            this.$emit('changed', '');
             return this.$emit('input', e);
           }).catch(reason => {
             return $this.$emit('message', {message: reason});
@@ -139,11 +147,14 @@ export default {
           }
           if (typeof this.parentObj == 'object') {
             this.parentObj.children = this.parentObj.children.filter(e => {return e.value != item.value;});
-            this.$emit('child', '');
+            if ($this.parentAvailableKey) {
+              $this.$store.commit('updateAvailable', {key: $this.parentAvailableKey, value: $this.parentObj});
+            }
           }
           if ($this.availableKey) {
             $this.$store.commit('delAvailable', {key: $this.availableKey, value: item});
           }
+          this.$emit('changed', '');
           $this.loadItems();
         }).catch(reason => {
           return $this.$emit('message', {message: reason});
@@ -166,15 +177,19 @@ export default {
             if (this.autoselect) {
               this.$emit('input', $this.items);
             }
-            if (this.autoselectById) {
+            if (this.autoselectById && typeof this.autoselectById == 'string') {
               var input = [];
               var ids = this.autoselectById.split(',');
-              this.items.forEach(e => {
-                if (ids.includes(e.value.toString())) {
-                  input.push(e);
-                }
-              });
-              this.$emit('input', input);
+              if (ids.length > 0) {
+                ids.forEach(id => {
+                  this.items.forEach(e => {
+                    if (id == e.value.toString()) {
+                      input.push(e);
+                    }
+                  });
+                });
+                this.$emit('input', input);
+              }
             }
           })
           .catch(reason => {
