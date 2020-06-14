@@ -10,7 +10,7 @@
               <!-- <v-btn icon>
                 <v-icon large>mdi-help-circle-outline</v-icon>
               </v-btn> -->
-              <img src="/assets/uni.gif" />
+              <img src="assets/uni.gif" />
               <v-spacer/>
               <v-btn icon v-if="writePermission" @click="editMode = !editMode;">
                 <v-icon large>mdi-cog-outline</v-icon>
