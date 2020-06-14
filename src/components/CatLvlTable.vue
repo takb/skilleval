@@ -33,6 +33,9 @@
 .dt {
   white-space: nowrap;
 }
+.v-data-table td:not(:last-child)  {
+  border-right: thin solid rgba(0, 0, 0, 0.12);
+}
 </style>
 
 <script>
