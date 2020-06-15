@@ -3,7 +3,7 @@
     <v-data-table class="dt" :headers="dtHeader" :items="dtData" :items-per-page="1000" :loading="dtLoading" hide-default-footer hide-default-header>
       <template v-slot:header="row">
         <tr v-if="dtData.length">
-          <th v-for="(g, i) in dtHeaderGroups" :colspan="g.value || 1" :key="i" style="text-align: center;">
+          <th v-for="(g, i) in dtHeaderGroups" :colspan="g.value || 1" :key="i" :style="'text-align: center; width: '+dtColWidth+'%;'">
             {{ g.text }}
           </th>
         </tr>
@@ -26,13 +26,12 @@
         </center>
       </template>
     </v-data-table>
+    <!-- DEBUG MODE OUTPUT<br /><br />
+    {{ chartData }} <br /><br /> -->
   </div>
 </template>
 
 <style scoped>
-.dt {
-  white-space: nowrap;
-}
 .v-data-table td:not(:last-child)  {
   border-right: thin solid rgba(0, 0, 0, 0.12);
 }
@@ -70,6 +69,7 @@ export default {
     dtHeaderGroups: [],
     dtHeader: [],
     dtData: [],
+    dtColWidth: '16',
   }),
   computed: {
     ...mapState(['available']),
@@ -81,6 +81,10 @@ export default {
         return;
       }
       this.dtLoading = true;
+      var showSubLevelColumn = false;
+      this.level.forEach(l=>{
+        if (l.children.length) showSubLevelColumn = true;
+      })
       // headers
       this.dtHeaderGroups = [];
       this.dtHeader = [];
@@ -88,8 +92,10 @@ export default {
         this.dtHeaderGroups.push({text: ''});
         this.dtHeader.push({text: this.levelLabel, value: 'lname'});
       }
-      this.dtHeaderGroups.push({text: ''});
-      this.dtHeader.push({text: this.sublevelLabel, value: 'slname'});
+      if (showSubLevelColumn) {
+        this.dtHeaderGroups.push({text: ''});
+        this.dtHeader.push({text: this.sublevelLabel, value: 'slname'});
+      }
 
       this.category.forEach(c => {
         this.dtHeaderGroups.push({text: c.text, value: c.children.length})
@@ -101,6 +107,7 @@ export default {
           this.dtHeader.push({text: "", value: 0})
         }
       });
+      this.dtColWidth = (1 / this.dtHeader.length * 100).toFixed(2);
       this.level.forEach(l => {
         if (l.children.length) {
           var firstchild = true;
@@ -109,7 +116,9 @@ export default {
             if (this.level.length > 1) {
               row['lname'] = firstchild ? l.text : ''
             }
-            row['slname'] = sl.text;
+            if (showSubLevelColumn) {
+              row['slname'] = sl.text;
+            }
             this.category.forEach(c => {
               if (c.children.length > 1) {
                 c.children.forEach(sc => {
@@ -121,9 +130,15 @@ export default {
             });
             this.dtData.push(row);
             firstchild = false;
-          });
+          }); 
         } else {
-          var row = {key: l.value+'.0', lname: l.text, slname: ''};
+          var row = {key: l.value+'.0'};
+          if (this.level.length > 1) {
+            row['lname'] = l.text;
+          }
+          if (showSubLevelColumn) {
+            row['slname'] = '';
+          }
           this.category.forEach(c => {
             if (c.children.length) {
               c.children.forEach(sc => {

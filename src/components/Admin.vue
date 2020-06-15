@@ -68,9 +68,11 @@
     <v-row>
       <v-col cols="12">
         <ul>
-          <li ><a @click="setViewmode('131,4,5,6,133');">Default user view for students</a></li>
+          <li ><a @click="setViewmode('196,192,189,185,265');">Default user view for students</a></li>
           <li v-for="level in available['lvl']" :key="level.value"><a @click="setViewmode(level.value);">User view for {{level.text}}</a></li>
         </ul>
+        <!-- DEBUG MODE OUTPUT<br /><br />
+        {{ course }} <br /><br /> -->
       </v-col>
     </v-row>
   </v-container>

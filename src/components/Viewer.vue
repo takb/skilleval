@@ -36,10 +36,11 @@
       </CatLvlTable>
     </LabeledBlock>
     <LabeledBlock :label="progressLabel" v-if="category.length && level.length">
-      <CustomChart :chart-data="chartData" :height="80" :stacked="stackedMode" style="margin: 10px;"></CustomChart>
+      <CustomChart :chart-data="chartData" :height="140" :stacked="stackedMode" style="margin: 10px;"></CustomChart>
     </LabeledBlock>
     <!-- DEBUG MODE OUTPUT<br /><br />
-    {{ chartData }} <br /><br /> -->
+    {{ items }} <br /><br />
+    <a @click="checkRandom()">check random courses</a> -->
   </v-container>
 </template>
 
@@ -83,7 +84,6 @@ export default {
     items: [],
     target: [],
     chartData: null,
-    chartData2: null,
     hoverBackgroundColors:["rgba(255, 99, 132, 0.8)","rgba(255, 205, 86, 0.8)","rgba(75, 192, 192, 0.8)","rgba(54, 162, 235, 0.8)","rgba(153, 102, 255, 0.8)","rgba(201, 203, 207, 0.8)"],
     backgroundColors:["rgba(255, 99, 132, 0.4)","rgba(255, 205, 86, 0.4)","rgba(75, 192, 192, 0.4)","rgba(54, 162, 235, 0.4)","rgba(153, 102, 255, 0.4)","rgba(201, 203, 207, 0.4)"],
     borderColors:["rgb(255, 99, 132)","rgb(255, 205, 86)","rgb(75, 192, 192)","rgb(54, 162, 235)","rgb(153, 102, 255)","rgb(201, 203, 207)"],
@@ -231,6 +231,13 @@ export default {
     showMessage(event) {
       this.$emit('message', event);
     },
+    // checkRandom() {
+    //   for (var block in this.items) {
+    //     this.items[block].forEach(course => {
+    //       course.selected = Math.random() > 0.6 ? course.value : undefined;
+    //     });
+    //   }
+    // },
   },
   watch: {
     category() {

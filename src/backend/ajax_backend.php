@@ -29,7 +29,7 @@ if (isValidAccess($ret) && hasReadPermission($permission, $ret)) {
       if ($result->num_rows) {
         while ($row = $result->fetch_array()) {
           $children = array();
-          $result2 = $db->query("SELECT * FROM `$TABLE_KEYTREE` WHERE `parent` = '{$row['id']}' ORDER BY `id`");
+          $result2 = $db->query("SELECT * FROM `$TABLE_KEYTREE` WHERE `parent` = '{$row['id']}' ORDER BY `id` DESC");
           if ($result2->num_rows) {
             while ($childrow = $result2->fetch_array()) {
               array_push($children, array(
@@ -120,7 +120,7 @@ if (isValidAccess($ret) && hasReadPermission($permission, $ret)) {
       success($ret, VAL_CONFIG_SAVED);
       break;
 
-      case "prefetch":
+    case "prefetch":
         $ret['items'] = array();
         $ret['target'] = array();
         $rowkeys = array();
@@ -156,6 +156,7 @@ if (isValidAccess($ret) && hasReadPermission($permission, $ret)) {
         foreach ($rowkeys as $rkey) {
           foreach ($colkeys as $ckey) {
             $blockkey = $rkey.'.'.$ckey;
+            array_push($keys_looked_at, $blockkey);
             $result = $db->query("SELECT `value` FROM `$TABLE_DATA` WHERE `key` = '$blockkey' AND `id` = 0");
             if ($row = $result->fetch_assoc()) {
               $ret['target'][$blockkey] = $row['value'];
@@ -163,17 +164,14 @@ if (isValidAccess($ret) && hasReadPermission($permission, $ret)) {
               continue;
             }
             $ret['items'][$blockkey] = array();
-            // SELECT `d`.`id`, `c`.`text`, `v`.`value` FROM `skilleval_values` AS `d`
-            //   LEFT JOIN `skilleval_keytree` AS `c` ON (`d`.`id` = `c`.`id`)
-            //   LEFT JOIN `skilleval_values` AS `v` ON (`d`.`id` = `v`.`id` AND `v`.`key` = 'points')
-            //   WHERE `d`.`key` = '4.17.20.24' AND `d`.`value` > 0 AND `d`.`id` > 0 AND `v`.`value` > 0//, `comment`.`value` AS co``, `url`.`value`
-            $result = $db->query("SELECT `d`.`id`, `c`.`text`, `points`.`value` AS `value`, `comment`.`value` AS `comment`, `url`.`value` AS `url`
-                                    FROM `$TABLE_DATA` AS `d`
-                                    LEFT JOIN `$TABLE_KEYTREE` AS `c` ON (`d`.`id` = `c`.`id`)
-                                    LEFT JOIN `$TABLE_DATA` AS `points` ON (`d`.`id` = `points`.`id` AND `points`.`key` = 'points')
-                                    LEFT JOIN `$TABLE_DATA` AS `comment` ON (`d`.`id` = `comment`.`id` AND `comment`.`key` = 'comment')
-                                    LEFT JOIN `$TABLE_DATA` AS `url` ON (`d`.`id` = `url`.`id` AND `url`.`key` = 'url')
-                                    WHERE `d`.`key` = '$blockkey' AND `d`.`value` > 0 AND `d`.`id` > 0 AND `points`.`value` > 0");
+            $query = "SELECT `d`.`id`, `c`.`text`, `points`.`value` AS `value`, `comment`.`value` AS `comment`, `url`.`value` AS `url`
+                        FROM `$TABLE_DATA` AS `d`
+                        LEFT JOIN `$TABLE_KEYTREE` AS `c` ON (`d`.`id` = `c`.`id`)
+                        LEFT JOIN `$TABLE_DATA` AS `points` ON (`d`.`id` = `points`.`id` AND `points`.`key` = 'points')
+                        LEFT JOIN `$TABLE_DATA` AS `comment` ON (`d`.`id` = `comment`.`id` AND `comment`.`key` = 'comment')
+                        LEFT JOIN `$TABLE_DATA` AS `url` ON (`d`.`id` = `url`.`id` AND `url`.`key` = 'url')
+                        WHERE `d`.`key` = '$blockkey' AND `d`.`value` > 0 AND `d`.`id` > 0 AND `points`.`value` > 0";
+            $result = $db->query($query);
             while ($row = $result->fetch_assoc()) {
               array_push($ret['items'][$blockkey], $row);
             }
@@ -181,96 +179,6 @@ if (isValidAccess($ret) && hasReadPermission($permission, $ret)) {
         }
         break;
 
-    // case "com":
-    //   if (!hasWritePermission($permission, $ret)) {break;}
-    //   if (!isValidID($id, $ret)) {break;}
-    //   $result = $db->query("UPDATE `$TABLE_KEYTREE` SET `comment` = '{$db->real_escape_string($text)}', `lastedit_timestamp` = NOW() WHERE `id` = $id");
-    //   if ($result) {
-    //     success($ret, VAL_COMMENT_SAVED);
-    //   } else {
-    //     errorMessage($ret, VAL_DB_ERROR);
-    //   }
-    //   break;
-    //
-    // case "chload":
-    //   if (!isValidID($id, $ret)) {break;}
-    //   $ret['mappings'] = array();
-    //   $result = $db->query("SELECT `m`.*, `s`.`parent` AS `stype`, `t`.`parent` AS `ttype`, `t`.`id` AS `tid`
-    //   	FROM `$TABLE_MAP` AS `m`
-    //   	LEFT JOIN `$TABLE_KEYTREE` AS `s` ON (`m`.`source` = `s`.`id`)
-    //     LEFT JOIN `$TABLE_KEYTREE` AS `t` ON (`m`.`target` = `t`.`id`)
-    //     WHERE `m`.`source` = $id");
-    //   if ($result) {
-    //     while ($row = $result->fetch_array()) {
-    //       array_push($ret['mappings'], array(
-    //         'stype' => intval($row['stype']), 'ttype' => intval($row['ttype']), 'tid' => $row['tid'],
-    //         KEY_CREATE_TS => $row[FIELD_CREATE_TS], KEY_LASTEDIT_TS => $row[FIELD_LASTEDIT_TS], KEY_LASTEDIT_USER => intval($row[FIELD_LASTEDIT_USER])
-    //       ));
-    //     }
-    //   } else {
-    //     errorMessage($ret, VAL_DB_ERROR);
-    //   }
-    //   break;
-    //
-    // case "cload":
-    //   $ret['options'] = array();
-    //   $result = $db->query("SELECT `t`.*, `t`.`parent` AS `ttype`, `t`.`id` AS `tid`
-    //   	FROM `$TABLE_MAP` AS `m`
-    //     LEFT JOIN `$TABLE_KEYTREE` AS `t` ON (`m`.`target` = `t`.`id`)
-    //     WHERE `m`.`source` IN ($ids)");
-    //   if ($result) {
-    //     while ($row = $result->fetch_array()) {
-    //       if (!is_array($ret['options'][$row['ttype']])) {
-    //         $ret['options'][$row['ttype']] = array();
-    //       }
-    //       foreach ($ret['options'][$row['ttype']] as $option) {
-    //           if ($option['value'] == $row['tid']) {
-    //             continue 2;
-    //           }
-    //       }
-    //       $children = array();
-    //       $result2 = $db->query("SELECT * FROM `$TABLE_KEYTREE` WHERE `parent` = '{$row['tid']}' ORDER BY  `text`");
-    //       if ($result2->num_rows) {
-    //         while ($childrow = $result2->fetch_array()) {
-    //           array_push($children, array(KEY_VALUE => intval($childrow['id']), KEY_TEXT => $childrow[KEY_TEXT]));
-    //         }
-    //       }
-    //       array_push($ret['options'][$row['ttype']], array(
-    //           KEY_VALUE => intval($row['tid']), KEY_TEXT => $row[KEY_TEXT], KEY_COMMENT => '',
-    //           KEY_CREATE_TS => $row[FIELD_CREATE_TS], KEY_LASTEDIT_TS => null, KEY_LASTEDIT_USER => intval($row[FIELD_LASTEDIT_USER]), KEY_CHILDREN => $children
-    //       ));
-    //     }
-    //   } else {
-    //     errorMessage($ret, VAL_DB_ERROR);
-    //   }
-    //   break;
-    //
-    // case "dload":
-    //   if (!isValidID($id, $ret)) {break;}
-    //   $ret['values'] = array();
-    //   $result = $db->query("SELECT * FROM `$TABLE_DATA` WHERE `id` LIKE '$id.%'");
-    //   while ($row = $result->fetch_array()) {
-    //     $ret['values'][$row['id']] = floatval($row['data']);
-    //   }
-    //   break;
-    //
-    // case "dsave":
-    //   if (!hasWritePermission($permission, $ret)) {break;}
-    //   if (!isValidKey($key, $ret)) {break;}
-    //   $result = $db->query("SELECT * FROM `$TABLE_DATA` WHERE `id` = '$key'");
-    //   if ($result->num_rows) {
-    //     $result = $db->query("UPDATE `$TABLE_DATA` SET `data` = $value, `lastedit_timestamp` = NOW(), `lastedit_user` = $user_id WHERE `id` = '$key'");
-    //   } else {
-    //     $result = $db->query("INSERT INTO `$TABLE_DATA` (`id`, `data`, `lastedit_user`) VALUES ('$key', $value, $user_id)");
-    //   }
-    //   if (!$result) {
-    //     errorMessage($ret, VAL_DB_ERROR);
-    //   }
-    //   if (!$ret['error']) {
-    //     success($ret, VAL_DATA_SAVED);
-    //   }
-    //   break;
-    //
     default:
       invalidAction($ret);
   }

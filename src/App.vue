@@ -5,7 +5,7 @@
         <v-col cols="12">
           <v-sheet>
             <v-toolbar class="header" flat>
-              <v-toolbar-title>hei4SKILL matrix app</v-toolbar-title>
+              <v-toolbar-title>hei4SKILLS-Matrix Selbstevaluationstool</v-toolbar-title>
               <v-spacer/>
               <!-- <v-btn icon>
                 <v-icon large>mdi-help-circle-outline</v-icon>
@@ -31,7 +31,7 @@
               <v-card-text class="grey text-center">
               </v-card-text>
               <v-card-text class="white--text grey darken-1 text-center">
-                &copy; {{ new Date().getFullYear() }} — <strong>Zentrales Sprachlabor, Universität Heidelberg</strong>
+                &copy; {{ new Date().getFullYear() }} — <strong>heiSKILLS Zentrum, Universität Heidelberg</strong>
               </v-card-text>
             </v-card>
           </v-col>
@@ -81,7 +81,7 @@ export default {
     sbColor: "error",
     sbTimeout: 3000,
     editMode: false,
-    viewmode: '131,4,5,6,133',
+    viewmode: '196,192,189,185,265',
     stackedMode: true,
   }),
   computed: {
